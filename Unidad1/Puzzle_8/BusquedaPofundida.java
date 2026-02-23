@@ -1,5 +1,5 @@
-package puzzle8;
-	import java.util.*;
+package Puzzle_8;
+import java.util.*;
 public class BusquedaPofundida {
 	    String estadoActual;
 	    String estadoFinal = "1238*4765";

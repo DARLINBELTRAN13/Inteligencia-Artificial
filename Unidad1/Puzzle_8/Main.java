@@ -1,4 +1,4 @@
-package puzzle8;
+package Puzzle_8;
 
 public class Main {
     public static void main(String[] args) {
