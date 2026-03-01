@@ -20,17 +20,22 @@ public class BusquedaPofundida {
 	    }
 	    
 	    public void solucionar() {
+	    	long inicio = System.currentTimeMillis();
 	        if (dfs()) {
+	        	long fin = System.currentTimeMillis();  
+	            long tiempoTotal = fin - inicio; 
 	            imprimirSolucion();
 	            System.out.println("-----------------------");
 	            System.out.println("Solución encontrada en : " + (camino.size() - 1) + " movimientos");
 	            System.out.println("Nodos totales explorados: " + nodosExplorados);
 	            System.out.println("Costo total de la solución: " + costoTotal);  
+	            System.out.println("Tiempo de ejecución: " + (tiempoTotal / 1000.0) + " segundos");
 	            System.out.println("-----------------------");
 	        } else {
 	            System.out.println("No se encontró solución.");
 	        }
 	    }
+
 	    
 	    private boolean dfs() {
 	        Stack<Nodo> pila = new Stack<>();
@@ -145,4 +150,3 @@ public class BusquedaPofundida {
 	        }
 	    }
 	}
-	
