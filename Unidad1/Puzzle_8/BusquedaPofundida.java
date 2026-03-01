@@ -35,7 +35,7 @@ public class BusquedaPofundida {
 	    private boolean dfs() {
 	        Stack<Nodo> pila = new Stack<>();
 	        Set<String> visitados = new HashSet<>();
-	        
+	
 	        Nodo raiz = new Nodo(estadoActual, 0, null, 0);  
 	        pila.push(raiz);
 	        visitados.add(estadoActual);
@@ -56,10 +56,8 @@ public class BusquedaPofundida {
 	            for (int i = destinos.length - 1; i >= 0; i--) {
 	                int destino = destinos[i];
 	                String nuevoEstado = intercambiar(nodoActual.estado, posVacia, destino);
-	                
 	                if (!visitados.contains(nuevoEstado)) {
 	                    visitados.add(nuevoEstado);
-	                    
 	                    char numeroMovido = nodoActual.estado.charAt(destino);
 	                    int costoMovimiento;
 	                    if (numeroMovido == '*') {
@@ -67,21 +65,17 @@ public class BusquedaPofundida {
 	                    } else {
 	                        costoMovimiento = Character.getNumericValue(numeroMovido);
 	                    }
-	                    
 	                    Nodo nodoHijo = new Nodo(
 	                        nuevoEstado, 
 	                        nodoActual.nivel + 1, 
 	                        nodoActual,
 	                        nodoActual.costoAcumulado + costoMovimiento
 	                    );
-	                    
 	                    pila.push(nodoHijo);
 	                    nodosExplorados++;  
 	                }
 	            }
-	        }
-	        
-	        return false;
+	        }return false;
 	    }
 	    
 	    public int getNodosExplorados() {
@@ -98,32 +92,23 @@ public class BusquedaPofundida {
 	    
 	    private void reconstruirCaminoDesdeNodo(Nodo nodoFinal) {
 	        camino.clear();
-	        costosPorMovimiento.clear();  
-	        
+	        costosPorMovimiento.clear(); 
 	        Stack<String> pilaEstados = new Stack<>();
 	        Stack<Integer> pilaCostos = new Stack<>();  
-	        
 	        Nodo actual = nodoFinal;
-	        
+	     
 	        while (actual != null) {
-	            pilaEstados.push(actual.estado);
-	            
+	            pilaEstados.push(actual.estado);       
 	            if (actual.padre != null) {
-	                int posVaciaActual = actual.estado.indexOf('*');
 	                int posVaciaPadre = actual.padre.estado.indexOf('*');
 	                char numeroMovido = actual.estado.charAt(posVaciaPadre);
-	                
 	                int costoMovimiento;
 	                if (numeroMovido == '*') {
 	                    costoMovimiento = 0;
 	                } else {
 	                    costoMovimiento = Character.getNumericValue(numeroMovido);
-	                }
-	                
-	                pilaCostos.push(costoMovimiento);
-	            }
-	            
-	            actual = actual.padre;
+	                } pilaCostos.push(costoMovimiento);
+	            } actual = actual.padre;
 	        }
 	        
 	        while (!pilaEstados.isEmpty()) {
@@ -134,7 +119,6 @@ public class BusquedaPofundida {
 	            costosPorMovimiento.add(pilaCostos.pop());
 	        }
 	    }
-	    
 	    private String intercambiar(String estado, int i, int j) {
 	        char[] chars = estado.toCharArray();
 	        char temp = chars[i];
@@ -142,8 +126,7 @@ public class BusquedaPofundida {
 	        chars[j] = temp;
 	        return new String(chars);
 	    }
-	    
-	    private void imprimirSolucion() {
+	     private void imprimirSolucion() {
 	        System.out.println("-----------------------");
 	        System.out.println("Camino de solución (DFS)");
 	        
@@ -153,7 +136,6 @@ public class BusquedaPofundida {
 	            imprimirEstado(camino.get(i));
 	        }
 	    }
-	    
 	    private void imprimirEstado(String estado) {
 	        for (int i = 0; i < 9; i++) {
 	            System.out.print(estado.charAt(i) + " ");

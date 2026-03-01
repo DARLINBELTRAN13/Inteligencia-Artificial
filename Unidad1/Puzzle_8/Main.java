@@ -1,4 +1,4 @@
-package Puzzle_8;  // Ajusta según tu package
+package Puzzle_8; 
 
 import java.util.Scanner;
 
@@ -51,4 +51,3 @@ public class Main {
         TipoBusqueda(estadoInicial);
     }
 }
-    

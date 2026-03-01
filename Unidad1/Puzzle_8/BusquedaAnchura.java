@@ -1,5 +1,4 @@
 package Puzzle_8;
-
 import java.util.*;
 
 public class BusquedaAnchura {
@@ -23,7 +22,6 @@ public class BusquedaAnchura {
     
     public void solucionar() {
         if (bfs()) {
-        	
         	imprimirSolucion();
         	System.out.println("-----------------------");
             System.out.println("Solución encontrada en : " + (camino.size() - 1) + " movimientos");
@@ -34,7 +32,6 @@ public class BusquedaAnchura {
             System.out.println("No se encontró solución.");
         }
     }
-    
     private boolean bfs() {
         Queue<Nodo> cola = new LinkedList<>();
         Set<String> visitados = new HashSet<>();
@@ -46,7 +43,6 @@ public class BusquedaAnchura {
         
         while (!cola.isEmpty()) {
             Nodo nodoActual = cola.poll();
-            
             if (nodoActual.estado.equals(estadoFinal)) {
                 reconstruirCaminoDesdeNodo(nodoActual);
                 costoTotal = nodoActual.costoAcumulado;  
@@ -54,14 +50,10 @@ public class BusquedaAnchura {
             }
             
             int posVacia = nodoActual.estado.indexOf('*');
-            
             for (int destino : movimientos[posVacia]) {
                 String nuevoEstado = intercambiar(nodoActual.estado, posVacia, destino);
-                
                 if (!visitados.contains(nuevoEstado)) {
                     visitados.add(nuevoEstado);
-                    
-                  
                     char numeroMovido = nodoActual.estado.charAt(destino);
                     int costoMovimiento;
                     if (numeroMovido == '*') {
@@ -69,8 +61,6 @@ public class BusquedaAnchura {
                     } else {
                         costoMovimiento = Character.getNumericValue(numeroMovido);
                     }
-                    
-                  
                     Nodo nodoHijo = new Nodo(
                         nuevoEstado, 
                         nodoActual.nivel + 1, 
@@ -82,9 +72,7 @@ public class BusquedaAnchura {
                     nodosExplorados++;  
                 }
             }
-        }
-        
-        return false;
+        }return false;
     }
     
     public int getNodosExplorados() {
@@ -110,30 +98,21 @@ public class BusquedaAnchura {
         
         while (actual != null) {
             pilaEstados.push(actual.estado);
-            
             if (actual.padre != null) {
-                int posVaciaActual = actual.estado.indexOf('*');
                 int posVaciaPadre = actual.padre.estado.indexOf('*');
                 char numeroMovido = actual.estado.charAt(posVaciaPadre);
-                
                 int costoMovimiento;
                 if (numeroMovido == '*') {
                     costoMovimiento = 0;
                 } else {
                     costoMovimiento = Character.getNumericValue(numeroMovido);
-                }
-                
-                pilaCostos.push(costoMovimiento);
+                } pilaCostos.push(costoMovimiento);
             }
-            
             actual = actual.padre;
         }
-        
- 
         while (!pilaEstados.isEmpty()) {
             camino.add(pilaEstados.pop());
         }
-        
         while (!pilaCostos.isEmpty()) {
             costosPorMovimiento.add(pilaCostos.pop());
         }
@@ -145,23 +124,17 @@ public class BusquedaAnchura {
         chars[i] = chars[j];
         chars[j] = temp;
         return new String(chars);
-    }
-    
+    } 
     private void imprimirSolucion() {
           System.out.println("-----------------------");
-          System.out.println("Camino de solución ");
-      
-        
+          System.out.println("Camino de solución ");        
         for (int i = 0; i < camino.size(); i++) {
         	System.out.println("-----------------------");
             System.out.println("Paso " + i + " (nivel " + i + "):");
             imprimirEstado(camino.get(i));
-           
-           
         }
         
     }
-  
     private void imprimirEstado(String estado) {
         for (int i = 0; i < 9; i++) {
             System.out.print(estado.charAt(i) + " ");
