@@ -1,5 +1,232 @@
 package Puzzle_8;
+import java.util.*;
 
 public class BusquedaHeu {
-
+    String estadoActual;
+    String estadoFinal = "1238*4765";
+    private List<String> camino = new ArrayList<>();
+    private int nodosExplorados;  
+    private int costoTotal; 
+    private List<Integer> costosPorMovimiento; 
+    
+    private int[][] movimientos = {
+        {1, 3}, {0, 2, 4}, {1, 5}, {0, 4, 6}, {1, 3, 5, 7}, {2, 4, 8}, {3, 7}, {4, 6, 8}, {5, 7}
+    };
+    
+    // Para guardar la heurística de cada nodo (necesitamos un mapa adicional)
+    private Map<Nodo, Integer> heuristicaMap = new HashMap<>();
+    
+    public BusquedaHeu(String e) {
+        estadoActual = e;
+        nodosExplorados = 0;  
+        costoTotal = 0;  
+        costosPorMovimiento = new ArrayList<>();  
+    }
+    
+    public void solucionar() {
+        if (aStarSearch()) {
+            imprimirSolucion();
+            System.out.println("-----------------------");
+            System.out.println("Solución encontrada en : " + (camino.size() - 1) + " movimientos");
+            System.out.println("Nodos totales explorados: " + nodosExplorados);
+            System.out.println("Costo total de la solución: " + costoTotal);  
+            System.out.println("-----------------------");
+        } else {
+            System.out.println("No se encontró solución.");
+        }
+    }
+    
+    private boolean aStarSearch() {
+        // PriorityQueue que ordena por f(n) = g(n) + h(n)
+        // Usamos un Comparator que accede al mapa de heurísticas
+        PriorityQueue<Nodo> colaPrioridad = new PriorityQueue<>((n1, n2) -> {
+            int f1 = n1.costoAcumulado + heuristicaMap.get(n1);
+            int f2 = n2.costoAcumulado + heuristicaMap.get(n2);
+            return Integer.compare(f1, f2);
+        });
+        
+        // Map para mantener el mejor costo encontrado para cada estado
+        Map<String, Integer> mejorCostoEstado = new HashMap<>();
+        
+        // Calcular heurística para el estado inicial
+        int heuristicaInicial = calcularFichasMalColocadas(estadoActual);
+        Nodo raiz = new Nodo(estadoActual, 0, null, 0);
+        heuristicaMap.put(raiz, heuristicaInicial);
+        
+        colaPrioridad.add(raiz);
+        mejorCostoEstado.put(estadoActual, 0);
+        nodosExplorados++;  
+        
+        while (!colaPrioridad.isEmpty()) {
+            Nodo nodoActual = colaPrioridad.poll();
+            
+            // Si encontramos la solución
+            if (nodoActual.estado.equals(estadoFinal)) {
+                reconstruirCaminoDesdeNodo(nodoActual);
+                costoTotal = nodoActual.costoAcumulado;  
+                return true;
+            }
+            
+            int posVacia = nodoActual.estado.indexOf('*');
+            
+            for (int destino : movimientos[posVacia]) {
+                String nuevoEstado = intercambiar(nodoActual.estado, posVacia, destino);
+                
+                // Calcular costo del movimiento
+                char numeroMovido = nodoActual.estado.charAt(destino);
+                int costoMovimiento;
+                if (numeroMovido == '*') {
+                    costoMovimiento = 0;
+                } else {
+                    costoMovimiento = Character.getNumericValue(numeroMovido);
+                }
+                
+                int nuevoCosto = nodoActual.costoAcumulado + costoMovimiento;
+                
+                // Si no hemos visto este estado o encontramos un camino más barato
+                if (!mejorCostoEstado.containsKey(nuevoEstado) || nuevoCosto < mejorCostoEstado.get(nuevoEstado)) {
+                    
+                    mejorCostoEstado.put(nuevoEstado, nuevoCosto);
+                    
+                    // Calcular heurística para el nuevo estado
+                    int heuristica = calcularFichasMalColocadas(nuevoEstado);
+                    
+                    Nodo nodoHijo = new Nodo(
+                        nuevoEstado, 
+                        nodoActual.nivel + 1, 
+                        nodoActual,
+                        nuevoCosto
+                    );
+                    
+                    // Guardar la heurística del nodo hijo
+                    heuristicaMap.put(nodoHijo, heuristica);
+                    
+                    colaPrioridad.add(nodoHijo);
+                    nodosExplorados++;  
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * HEURÍSTICA: Fichas mal colocadas (misplaced tiles)
+     * Cuenta cuántas fichas NO están en su posición correcta
+     * El espacio vacío '*' no se cuenta
+     */
+    private int calcularFichasMalColocadas(String estado) {
+        int malColocadas = 0;
+        
+        // Comparamos posición por posición con el estado final
+        for (int i = 0; i < 9; i++) {
+            char fichaActual = estado.charAt(i);
+            char fichaObjetivo = estadoFinal.charAt(i);
+            
+            // Si la ficha no es el espacio vacío y no está en su posición correcta
+            if (fichaActual != '*' && fichaActual != fichaObjetivo) {
+                malColocadas++;
+            }
+        }
+        
+        return malColocadas;
+    }
+    
+    public int getNodosExplorados() {
+        return nodosExplorados;
+    }
+    
+    public int getCostoTotal() {
+        return costoTotal;
+    }
+    
+    public List<Integer> getCostosPorMovimiento() {
+        return costosPorMovimiento;
+    }
+    
+    private void reconstruirCaminoDesdeNodo(Nodo nodoFinal) {
+        camino.clear();
+        costosPorMovimiento.clear();  
+        
+        Stack<String> pilaEstados = new Stack<>();
+        Stack<Integer> pilaCostos = new Stack<>();  
+        
+        Nodo actual = nodoFinal;
+        
+        while (actual != null) {
+            pilaEstados.push(actual.estado);
+            
+            if (actual.padre != null) {
+                int posVaciaPadre = actual.padre.estado.indexOf('*');
+                char numeroMovido = actual.estado.charAt(posVaciaPadre);
+                
+                int costoMovimiento;
+                if (numeroMovido == '*') {
+                    costoMovimiento = 0;
+                } else {
+                    costoMovimiento = Character.getNumericValue(numeroMovido);
+                }
+                
+                pilaCostos.push(costoMovimiento);
+            }
+            
+            actual = actual.padre;
+        }
+        
+        while (!pilaEstados.isEmpty()) {
+            camino.add(pilaEstados.pop());
+        }
+        
+        while (!pilaCostos.isEmpty()) {
+            costosPorMovimiento.add(pilaCostos.pop());
+        }
+    }
+    
+    private String intercambiar(String estado, int i, int j) {
+        char[] chars = estado.toCharArray();
+        char temp = chars[i];
+        chars[i] = chars[j];
+        chars[j] = temp;
+        return new String(chars);
+    }
+    
+    private void imprimirSolucion() {
+        System.out.println("-----------------------");
+        System.out.println("Camino de solución (A* con Heurística)");
+        
+        // Necesitamos reconstruir los nodos para obtener sus heurísticas
+        // Como no guardamos los nodos, calculamos la heurística sobre la marcha
+        for (int i = 0; i < camino.size(); i++) {
+            System.out.println("-----------------------");
+            System.out.println("Paso " + i + " (nivel " + i + "):");
+            if (i > 0) {
+                System.out.println("Costo del movimiento: " + costosPorMovimiento.get(i-1));
+                int costoAcumulado = calcularCostoAcumuladoHastaPaso(i);
+                System.out.println("Costo acumulado (g): " + costoAcumulado);
+                
+                // Mostrar heurística para este estado
+                int h = calcularFichasMalColocadas(camino.get(i));
+                System.out.println("Heurística (h): " + h + " fichas mal colocadas");
+                System.out.println("f(n) = g(n) + h(n) = " + costoAcumulado + " + " + h + " = " + (costoAcumulado + h));
+            }
+            imprimirEstado(camino.get(i));
+        }
+    }
+    
+    private int calcularCostoAcumuladoHastaPaso(int paso) {
+        int costo = 0;
+        for (int i = 0; i < paso; i++) {
+            costo += costosPorMovimiento.get(i);
+        }
+        return costo;
+    }
+    
+    private void imprimirEstado(String estado) {
+        for (int i = 0; i < 9; i++) {
+            System.out.print(estado.charAt(i) + " ");
+            if ((i + 1) % 3 == 0) {
+                System.out.println();
+            }
+        }
+    }
 }

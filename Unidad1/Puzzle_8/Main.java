@@ -1,30 +1,26 @@
-package Puzzle_8;
+package Puzzle_8;  // Ajusta según tu package
 
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) {
-        String estadoInicial = "5674*8321";
-        TipoBusqueda(estadoInicial);
-    } 
-
     public static void TipoBusqueda(String estadoInicial) {
         Scanner sc = new Scanner(System.in);
         int opc;
-        do {
-        System.out.println("Ingrese que tipo de busqueda quiere realizar:");
-        System.out.println("1. Busqueda anchura---------------------------");
-        System.out.println("2. Busqueda profundidad-----------------------");
-        System.out.println("3. Busqueda costo uniforme--------------------");
-        System.out.println("4. Busqueda con heuristica--------------------");
-        System.out.println("5. Salir------------------------------------->");
-        System.out.println();
         
-        opc = sc.nextInt();
-
+        do {
+            System.out.println("=== MENÚ DE BÚSQUEDA ===");
+            System.out.println("1. Búsqueda Anchura");
+            System.out.println("2. Búsqueda Profundidad");
+            System.out.println("3. Búsqueda Costo Uniforme");
+            System.out.println("4. Búsqueda Heurística");
+            System.out.println("5. Salir");
+            System.out.print("Opción: ");
+            
+            opc = sc.nextInt();
+            
             switch (opc) {
                 case 1:
-                	BusquedaAnchura solucion = new BusquedaAnchura(estadoInicial);
+                    BusquedaAnchura solucion = new BusquedaAnchura(estadoInicial);
                     solucion.solucionar();
                     break;
                 case 2:
@@ -32,20 +28,27 @@ public class Main {
                     solucion1.solucionar();
                     break;
                 case 3:
-                	BusquedaCostoU solucion2 = new BusquedaCostoU(estadoInicial);
+                    BusquedaCostoU solucion2 = new BusquedaCostoU(estadoInicial);
                     solucion2.solucionar();
-                case 4:
-                    System.out.println("Opción no implementada todavía.");
                     break;
-                case 5: 
-                	System.out.println("Programa cerrado.");
-                	break;
+                case 4:
+                    BusquedaHeu solucion3 = new BusquedaHeu(estadoInicial);
+                    solucion3.solucionar();
+                    break;
+                case 5:
+                    System.out.println("Programa cerrado.");
+                    break;
                 default:
-                    System.out.println("Error, ingrese otro numero.");
+                    System.out.println("Error, ingrese otro número.");
             }
-            
-        } while (opc != 5); 
+        } while (opc != 5);
+        
+        sc.close();  
+    }
+    
+    public static void main(String[] args) {
+        String estadoInicial = "5674*8321";
+        TipoBusqueda(estadoInicial);
     }
 }
-
     
