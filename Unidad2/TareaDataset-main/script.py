@@ -10,7 +10,7 @@ if not os.path.exists(path_completo):
     print(f'Carpeta creada: {path_completo}')
     os.makedirs(path_completo)
 
-# 2. Cargar el clasificador de rostros(Haar Cascade)
+# 2. Cargar el clasificador de rostros (Haar Cascade)-
 face_cascade = cv2.CascadeClassifier('/home/darla/Descargas/haarcascade_frontalface_default.xml')
 
 # 3. Iniciar la captura de video
