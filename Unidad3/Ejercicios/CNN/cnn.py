@@ -20,7 +20,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torchvision import datasets, transforms
 
-googleColaboratory = True
+googleColaboratory = False
 entrenamiento = True
 convolucionProfunda = False
 resNet = True
@@ -188,8 +188,8 @@ class ResNet(nn.Module):
 
 # Se crea un modelo CNN
 #if googleColaboratory:
-if googleColaboratory:
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') #training with either cpu or cuda
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') #training with either cpu or cuda
 
 if resNet:
     if googleColaboratory:
