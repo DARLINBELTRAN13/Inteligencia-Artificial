@@ -1,8 +1,12 @@
 import cv2
 import numpy as np
+import os
+
+os.environ["TF_USE_LEGACY_KERAS"] = "1"
+
+
 import tensorflow as tf
 import json
-import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELO = os.path.join(BASE_DIR, "modelo_transfer.keras")

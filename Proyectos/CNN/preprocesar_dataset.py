@@ -2,8 +2,8 @@ import cv2
 import os
 from pathlib import Path
 
-DATASET_ORIGINAL = "datase"
-DATASET_PROCESADO =  "/Users/darla4r15/Documents/Inteligencia-Artificial/Unidad2/TareaDataset-main/dataset"
+DATASET_ORIGINAL = "/Users/darla4r15/Documents/Inteligencia-Artificial/Unidad2/TareaDataset-main/dataset"
+DATASET_PROCESADO = "/Users/darla4r15/Documents/Inteligencia-Artificial/Unidad2/TareaDataset-main/dataset_procesado"
 TAMAÑO = 224
 
 ruta_cascade = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
