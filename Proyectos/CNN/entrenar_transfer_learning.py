@@ -4,7 +4,7 @@ from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import json
 
-DATASET = "dataset_procesado"
+DATASET = "/Users/darla4r15/Documents/Inteligencia-Artificial/Unidad2/TareaDataset-main/dataset"
 TAMAÑO = 224
 BATCH_SIZE = 32
 EPOCAS_INICIALES = 30  
