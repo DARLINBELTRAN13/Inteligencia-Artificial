@@ -1,5 +1,5 @@
 import cv2
-import os
+import os 
 
 # 1. Configuración inicial
 nombre_persona = 'DarlinMolina'
@@ -11,7 +11,7 @@ if not os.path.exists(path_completo):
     os.makedirs(path_completo)
 
 # 2. Cargar el clasificador de rostros (Haar Cascade)-
-face_cascade = cv2.CascadeClassifier('/home/darla/Descargas/haarcascade_frontalface_default.xml')
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 # 3. Iniciar la captura de video
 cap = cv2.VideoCapture(0)

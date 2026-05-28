@@ -8,6 +8,20 @@
             "type": "java",
             "name": "Main",
             "request": "launch",
+            "mainClass": "Puzzle_24.Main",
+            "projectName": "Inteligencia-Artificial_69ae3859"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Puzzle_8.Main",
+            "projectName": "Inteligencia-Artificial_69ae3859"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
             "mainClass": "Puzzle_8.Main",
             "projectName": "Inteligencia-Artificial_de77c6f3"
         },
