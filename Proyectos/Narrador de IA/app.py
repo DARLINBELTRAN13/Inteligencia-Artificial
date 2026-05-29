@@ -24,15 +24,10 @@ LLM_MODEL_ID = "Qwen/Qwen2.5-1.5B-Instruct"
 TTS_MODEL_ID = "facebook/mms-tts-spa"
 SIM_MODEL_ID = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
+# PASO 1: CAPTURA (OpenCV)
 def extract_frames(video_path: str, interval_seconds: int = 1):
     """
     Generador que extrae UN frame cada `interval_seconds` segundos.
-
-    Usar `yield` (en lugar de devolver una lista) es CRÍTICO:
-    procesamos el video en streaming sin cargarlo entero en memoria.
-
-    Yields:
-        (idx_extraido, timestamp_segundos, frame_rgb_numpy)
     """
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
@@ -41,10 +36,12 @@ def extract_frames(video_path: str, interval_seconds: int = 1):
     idx_total = 0
     idx_out = 0
     try:
+        # ... (cálculo de FPS y saltos) 
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
+            # Cada 'step' fotogramas, convierte la imagen a RGB y la "escupe" (yield)
             if idx_total % step == 0:
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 yield idx_out, idx_total / fps, frame_rgb
@@ -52,6 +49,9 @@ def extract_frames(video_path: str, interval_seconds: int = 1):
             idx_total += 1
     finally:
         cap.release()
+
+
+# PASO 2: VISIÓN (BLIP)
 
 @st.cache_resource(show_spinner="Cargando modelo de visión (BLIP)...")
 def load_vision_model():
@@ -65,15 +65,18 @@ def load_vision_model():
 def describe_frame(frame_rgb: np.ndarray, processor, model) -> str:
     """
     Recibe un frame (numpy RGB) y devuelve una descripción.
-    BLIP devuelve texto en inglés — eso está bien, después el LLM
-    se encarga de traducir/reinterpretar en español.
     """
+    # Convierte la matriz de colores a una Imagen de PIL
     image = Image.fromarray(frame_rgb)
     inputs = processor(image, return_tensors="pt").to(DEVICE)
+    # Genera el texto sin entrenar el modelo (no_grad)
     with torch.no_grad():
         output_ids = model.generate(**inputs, max_new_tokens=40)
     return processor.decode(output_ids[0], skip_special_tokens=True)
 
+
+
+# PASO 3: NLP (LLM)
 @st.cache_resource(show_spinner="Cargando LLM comentarista (Qwen)...")
 def load_llm():
     tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_ID)
@@ -90,8 +93,6 @@ def generate_commentary(description_en: str, tokenizer, model) -> str:
     """
     Toma la descripción literal (de BLIP, normalmente en inglés) y la
     transforma en un comentario corto y dinámico en español.
-
-    El "system prompt" es donde le damos la personalidad al modelo.
     """
     system_prompt = (
         "Eres un comentarista profesional de e-sports en español. "
@@ -106,11 +107,12 @@ def generate_commentary(description_en: str, tokenizer, model) -> str:
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
+    # Prepara el formato de chat que Qwen entiende
     prompt_text = tokenizer.apply_chat_template(
         messages, tokenize=False, add_generation_prompt=True
     )
     inputs = tokenizer(prompt_text, return_tensors="pt").to(DEVICE)
-
+    # Genera el comentario creativo (temperatura 0.8 para darle variabilidad)
     with torch.no_grad():
         out = model.generate(
             **inputs,
@@ -125,6 +127,9 @@ def generate_commentary(description_en: str, tokenizer, model) -> str:
     )
     return response.strip()
 
+
+# PASO 4: TTS (MMS-TTS)
+
 @st.cache_resource(show_spinner="Cargando modelo de voz (MMS-TTS)...")
 def load_tts():
     tokenizer = AutoTokenizer.from_pretrained(TTS_MODEL_ID)
@@ -137,11 +142,17 @@ def synthesize_speech(text: str, tokenizer, model, output_path: str) -> str:
     """Genera un .wav a partir del texto. Devuelve la ruta del archivo."""
     inputs = tokenizer(text, return_tensors="pt").to(DEVICE)
     with torch.no_grad():
-        waveform = model(**inputs).waveform 
+        waveform = model(**inputs).waveform  # Genera la onda de sonido
+        # Convierte el tensor de PyTorch a un arreglo estándar de Numpy
     audio = waveform.squeeze().cpu().numpy()
     sr = model.config.sampling_rate 
+    # Guarda físicamente el archivo .wav en el sistema
     scipy.io.wavfile.write(output_path, sr, audio)
     return output_path
+
+
+
+# PASO 5: CONTROL (Similitud)
 
 @st.cache_resource(show_spinner="Cargando modelo de similitud...")
 def load_similarity_model():
@@ -156,20 +167,17 @@ def is_scene_significant(
 ) -> tuple[bool, float]:
     """
     Devuelve (es_significativo, similitud_calculada).
-
-    Lógica:
-        - Codificamos ambas descripciones a vectores (embeddings).
-        - Calculamos la similitud coseno.
-        - Si está POR DEBAJO del umbral → la escena cambió → SÍ comentar.
-
-    El primer frame siempre se considera significativo (no hay referencia).
     """
     if prev_caption is None:
-        return True, 0.0
+        return True, 0.0 # El primer frame siempre es significativo 
+    # Convierte los textos a vectores
     emb1 = sim_model.encode(prev_caption, convert_to_tensor=True)
     emb2 = sim_model.encode(current_caption, convert_to_tensor=True)
+    # Calcula la similitud (de 0.0 a 1.0)
     similarity = util.cos_sim(emb1, emb2).item()
+    # Devuelve True si son suficientemente distintos
     return similarity < threshold, similarity
+
 
 def main():
     st.set_page_config(page_title="Narrador IA", page_icon="🎮", layout="wide")
@@ -231,13 +239,20 @@ def main():
     progress = st.progress(0.0, text="Procesando...")
     prev_caption = None
 
+
+    # EJECUCIÓN 
+
+
+    #CAPTURA
     for idx, ts, frame in extract_frames(video_path, interval):
         progress.progress(
             min(1.0, (idx + 1) / estimated), text=f"Frame en t={ts:.1f}s"
         )
 
+        # VISIÓN
         caption = describe_frame(frame, vis_proc, vis_model)
 
+        # CONTROL
         significant, sim = is_scene_significant(
             prev_caption, caption, sim_model, threshold
         )
@@ -251,6 +266,7 @@ def main():
                 st.caption(f"Similitud vs. escena anterior: {sim:.2f}")
 
                 if significant:
+                    # ---> PASO 3: NLP
                     commentary = generate_commentary(caption, llm_tok, llm_model)
                     st.markdown(f"**🎙️ Comentario:** {commentary}")
 
@@ -258,6 +274,7 @@ def main():
                         audio_path = os.path.join(
                             tempfile.gettempdir(), f"narrador_{idx}.wav"
                         )
+                        # ---> PASO 4: TTS
                         synthesize_speech(
                             commentary, tts_tok, tts_model, audio_path
                         )
